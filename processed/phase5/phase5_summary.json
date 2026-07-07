@@ -1,0 +1,85 @@
+{
+  "customer_segments": {
+    "rows": 93358,
+    "segment_distribution": {
+      "Standard": 54203,
+      "Dormant": 36362,
+      "High-Value Repeat": 2793
+    }
+  },
+  "cohort": {
+    "shape": [
+      23,
+      20
+    ],
+    "month_1_retention_avg": 4.74,
+    "month_3_retention_avg": 0.18,
+    "month_6_retention_avg": 0.18
+  },
+  "clv": {
+    "avg_clv": 165.17,
+    "median_clv": 107.78
+  },
+  "churn": {
+    "churn_rate_pct": 70.81,
+    "at_risk_customers": 38706
+  },
+  "basket": {
+    "top_pairs": [
+      {
+        "category_a": "bed_bath_table",
+        "category_b": "furniture_decor",
+        "co_occurrences": 70
+      },
+      {
+        "category_a": "bed_bath_table",
+        "category_b": "home_confort",
+        "co_occurrences": 43
+      },
+      {
+        "category_a": "furniture_decor",
+        "category_b": "housewares",
+        "co_occurrences": 24
+      },
+      {
+        "category_a": "bed_bath_table",
+        "category_b": "housewares",
+        "co_occurrences": 20
+      },
+      {
+        "category_a": "baby",
+        "category_b": "cool_stuff",
+        "co_occurrences": 20
+      },
+      {
+        "category_a": "baby",
+        "category_b": "toys",
+        "co_occurrences": 19
+      },
+      {
+        "category_a": "baby",
+        "category_b": "bed_bath_table",
+        "co_occurrences": 17
+      },
+      {
+        "category_a": "furniture_decor",
+        "category_b": "garden_tools",
+        "co_occurrences": 16
+      },
+      {
+        "category_a": "housewares",
+        "category_b": "unknown",
+        "co_occurrences": 14
+      },
+      {
+        "category_a": "health_beauty",
+        "category_b": "sports_leisure",
+        "co_occurrences": 14
+      }
+    ]
+  },
+  "delivery": {
+    "late_delivery_rate_pct": 8.11,
+    "predicted_auc": 0.6357
+  }
+}

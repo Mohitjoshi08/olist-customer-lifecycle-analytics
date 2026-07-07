@@ -1,0 +1,43 @@
+{
+  "analysis_period": {
+    "start": "2016-09-04 21:15:19",
+    "end": "2018-10-17 17:30:18"
+  },
+  "orders": 99441,
+  "delivered_orders": 96478,
+  "delivery_rate_pct": 97.02,
+  "unique_customers": 96096,
+  "gmv": 15419773.75,
+  "aov": 159.83,
+  "median_order_value": 105.28,
+  "avg_review_score": 4.09,
+  "late_delivery_rate_pct": 8.11,
+  "single_order_customer_pct": 97.0,
+  "repeat_customer_pct": 3.0,
+  "top_states": {
+    "SP": 41746,
+    "RJ": 12852,
+    "MG": 11635,
+    "RS": 5466,
+    "PR": 5045
+  },
+  "payment_mix": {
+    "credit_card": 73.92,
+    "boleto": 19.040000000000003,
+    "voucher": 5.56,
+    "debit_card": 1.47,
+    "not_defined": 0.0
+  },
+  "top_categories": {
+    "health_beauty": 1412089.53,
+    "watches_gifts": 1264333.12,
+    "bed_bath_table": 1225209.26,
+    "sports_leisure": 1118256.91,
+    "computers_accessories": 1032723.77,
+    "furniture_decor": 880329.92,
+    "housewares": 758392.25,
+    "cool_stuff": 691680.89,
+    "auto": 669454.75,
+    "garden_tools": 567145.68
+  }
+}

@@ -1,0 +1,12 @@
+# Ignore data directory (contains raw and processed data)
+data/
+
+# Ignore Python caches and checkpoints
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+
+# Ignore local tool files
+.gemini/
+scratch/
