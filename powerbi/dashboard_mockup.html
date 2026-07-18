@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Olist Customer Lifecycle Analytics - Executive Power BI Dashboard</title>
+  <!-- Load Outfit font from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Load Chart.js for premium interactive charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-canvas: #F1F5F9;
+      --bg-card: #FFFFFF;
+      --border-color: #E2E8F0;
+      
+      /* Dynamic theme accent (Updates per page) */
+      --accent: #55A868;       /* Default Green (Page 1) */
+      
+      --slate-light: #64748B;
+      --slate-dark: #0F172A;
+      --sidebar-width: 240px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* Fixed Widescreen 16:9 Canvas Layout - Zero Scroll */
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--slate-dark);
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* Left Sidebar Navigation */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: #0B132B;
+      color: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      height: 100vh;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-header h1 {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #FFFFFF;
+    }
+
+    .sidebar-header p {
+      font-size: 8px;
+      color: var(--slate-light);
+      margin-top: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .nav-menu {
+      list-style: none;
+      margin-top: 12px;
+      flex-grow: 1;
+    }
+
+    .nav-item {
+      padding: 10px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 500;
+      color: #94A3B8;
+      transition: all 0.15s ease;
+      border-left: 4px solid transparent;
+    }
+
+    .nav-item:hover {
+      color: #FFFFFF;
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+
+    .nav-item.active {
+      color: #FFFFFF;
+      background-color: rgba(255, 255, 255, 0.05);
+      border-left-color: var(--accent);
+    }
+
+    .nav-icon {
+      margin-right: 10px;
+      font-size: 13px;
+      width: 16px;
+      text-align: center;
+    }
+
+    .sidebar-footer {
+      padding: 10px 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 8px;
+      color: var(--slate-light);
+    }
+
+    /* Main Workspace */
+    .workspace {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Top Bar Header (No Slicers/Dropdowns) */
+    .top-bar {
+      height: 60px;
+      background-color: #FFFFFF;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 20px;
+      flex-shrink: 0;
+    }
+
+    .top-bar h2 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--slate-dark);
+    }
+
+    .top-bar-subtitle {
+      font-size: 9px;
+      color: var(--slate-light);
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* Content Area - Fixed Viewport, Zero Scroll */
+    .content-area {
+      flex-grow: 1;
+      padding: 12px 16px;
+      height: calc(100vh - 60px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .dashboard-page {
+      display: none;
+      height: 100%;
+      width: 100%;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .dashboard-page.active {
+      display: flex;
+    }
+
+    /* Single Horizontal KPI Row at the Top */
+    .kpi-row-horizontal {
+      display: grid;
+      grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr 1fr; /* GMV visual dominance */
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    .kpi-row-5 {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    .kpi-row-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    .kpi-card {
+      background-color: var(--bg-card);
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      padding: 8px 10px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 60px;
+      flex-shrink: 0;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 100%;
+      background-color: var(--accent);
+      border-top-left-radius: 6px;
+      border-bottom-left-radius: 6px;
+    }
+
+    .kpi-card.hero {
+      background: linear-gradient(135deg, #0F172A, #1E293B);
+      color: #FFFFFF;
+      border-color: #0F172A;
+    }
+    .kpi-card.hero::before { display: none; }
+    .kpi-card.hero .kpi-title { color: #94A3B8; }
+    .kpi-card.hero .kpi-value { color: #FFFFFF; }
+    .kpi-card.hero .kpi-benchmark { color: var(--slate-light); }
+
+    .kpi-card.accent-amber::before { background-color: var(--secondary); }
+    .kpi-card.accent-plum::before { background-color: var(--plum); }
+    .kpi-card.accent-green::before { background-color: var(--green); }
+
+    .kpi-title {
+      font-size: 8px;
+      color: var(--slate-light);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .kpi-value-container {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-top: 1px;
+    }
+
+    .kpi-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--slate-dark);
+    }
+
+    .kpi-trend {
+      font-size: 8px;
+      font-weight: 600;
+      padding: 0px 3px;
+      border-radius: 2px;
+    }
+
+    .trend-up { background-color: rgba(85, 168, 104, 0.1); color: var(--green); }
+    .trend-down { background-color: rgba(162, 59, 114, 0.1); color: var(--plum); }
+
+    .kpi-benchmark {
+      font-size: 8px;
+      color: var(--slate-light);
+      margin-top: 1px;
+    }
+
+    /* Grid Layouts for Visuals */
+    .visual-grid-container {
+      flex-grow: 1;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      min-height: 0; /* Enable viewport flex shrinking */
+      margin-bottom: 10px;
+    }
+
+    .visual-grid-wide {
+      flex-grow: 1;
+      display: grid;
+      grid-template-columns: 1.8fr 1.2fr;
+      gap: 10px;
+      min-height: 0;
+      margin-bottom: 10px;
+    }
+
+    .visual-card {
+      background-color: var(--bg-card);
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .visual-title {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--slate-dark);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 4px;
+      flex-shrink: 0;
+    }
+
+    .chart-wrapper {
+      flex-grow: 1;
+      position: relative;
+      min-height: 0;
+      height: 100%;
+    }
+
+    /* Visual Annotations Layer (Problems 3 & 9) */
+    .chart-annotation-badge {
+      position: absolute;
+      background-color: rgba(15, 23, 42, 0.9);
+      color: #FFFFFF;
+      padding: 3px 6px;
+      border-radius: 3px;
+      font-size: 8px;
+      font-weight: 600;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Data Tables */
+    .table-wrapper {
+      flex-grow: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9px;
+    }
+
+    table.data-table th {
+      text-align: left;
+      padding: 4px 6px;
+      background-color: #F8FAFC;
+      color: var(--slate-light);
+      font-weight: 700;
+      border-bottom: 2px solid var(--border-color);
+      text-transform: uppercase;
+      font-size: 8px;
+    }
+
+    table.data-table td {
+      padding: 4px 6px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--slate-dark);
+      vertical-align: middle;
+    }
+
+    .progress-bar-cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .progress-track {
+      flex-grow: 1;
+      height: 5px;
+      background-color: #E2E8F0;
+      border-radius: 2.5px;
+      overflow: hidden;
+      max-width: 50px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: var(--accent);
+    }
+    .progress-fill.green { background-color: var(--green); }
+    .progress-fill.plum { background-color: var(--plum); }
+    .progress-fill.amber { background-color: var(--secondary); }
+
+    .badge {
+      display: inline-block;
+      padding: 1px 3px;
+      border-radius: 2px;
+      font-size: 7px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-champions { background-color: #DCFCE7; color: #166534; }
+    .badge-loyal { background-color: #DBEAFE; color: #1E40AF; }
+    .badge-recent { background-color: #FEF9C3; color: #854D0E; }
+    .badge-atrisk { background-color: #FEE2E2; color: #991B1B; }
+    .badge-lost { background-color: #F3E8FF; color: #6B21A8; }
+
+    .drill-hint {
+      font-size: 7px;
+      color: var(--slate-light);
+      font-style: italic;
+      margin-top: 2px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Executive AI Insight Strip */
+    .ai-insights-strip {
+      background-color: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      border-radius: 4px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 9.5px;
+      color: var(--slate-dark);
+      flex-shrink: 0;
+      margin-top: auto;
+    }
+
+    .ai-insights-strip strong {
+      text-transform: uppercase;
+      font-size: 8.5px;
+      color: var(--primary);
+    }
+
+    /* McKinsey Storytelling Presentation Panel (Page 1) */
+    .mckinsey-flow-panel {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 10px 14px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      flex-shrink: 0;
+      margin-bottom: 8px;
+    }
+
+    .mck-step {
+      border-right: 1px solid var(--border-color);
+      padding-right: 10px;
+    }
+
+    .mck-step:last-child {
+      border-right: none;
+      padding-right: 0;
+    }
+
+    .mck-step-label {
+      font-size: 8px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .mck-step-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--slate-dark);
+      margin-bottom: 2px;
+    }
+
+    .mck-step-desc {
+      font-size: 9px;
+      color: var(--slate-light);
+      line-height: 1.3;
+    }
+
+    /* Compact ML Layout (Problem 8) */
+    .ml-flex-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-grow: 1;
+      justify-content: space-between;
+    }
+
+    .ml-card-compact {
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 6px 8px;
+      background-color: var(--bg-canvas);
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr 1.8fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .ml-col {
+      font-size: 9px;
+    }
+
+    .ml-col strong {
+      font-size: 8px;
+      text-transform: uppercase;
+      color: var(--slate-light);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .ml-col h5 {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--slate-dark);
+    }
+
+    /* Key Influencers visual flow */
+    .influencer-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .influencer-node {
+      display: grid;
+      grid-template-columns: 90px 25px 1fr;
+      align-items: center;
+      gap: 6px;
+      font-size: 9px;
+    }
+
+    .influencer-bar-container {
+      height: 8px;
+      background-color: #F1F5F9;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .influencer-bar-fill {
+      height: 100%;
+      background-color: var(--plum);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LEFT SIDEBAR NAVIGATION -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1>Olist Dashboard</h1>
+      <p>Customer Lifecycle Analysis</p>
+    </div>
+    
+    <ul class="nav-menu">
+      <li class="nav-item active" onclick="switchPage(1)">
+        <span class="nav-icon">📊</span> Overview
+      </li>
+      <li class="nav-item" onclick="switchPage(2)">
+        <span class="nav-icon">👥</span> Retention
+      </li>
+      <li class="nav-item" onclick="switchPage(3)">
+        <span class="nav-icon">🏪</span> Marketplace
+      </li>
+      <li class="nav-item" onclick="switchPage(4)">
+        <span class="nav-icon">🚚</span> Logistics & ML
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <p>Power BI Service Layout</p>
+      <p style="font-size: 8px; margin-top: 2px;">Widescreen Canvas Fit</p>
+    </div>
+  </aside>
+
+  <!-- MAIN WORKSPACE -->
+  <main class="workspace">
+    <header class="top-bar">
+      <h2>Olist Customer Lifecycle Analytics - Executive Report</h2>
+      <div class="top-bar-subtitle">Macro-Level Dashboard | All Regions | Year: 2016-2018 | Primary demand in São Paulo (SP)</div>
+    </header>
+
+    <div class="content-area">
+
+      <!-- PAGE 1: EXECUTIVE OVERVIEW (Theme: Green) -->
+      <div id="page-1" class="dashboard-page active">
+        <!-- 6 KPIs Row -->
+        <div class="kpi-row-horizontal">
+          <div class="kpi-card hero">
+            <div class="kpi-title">Gross Revenue (GMV)</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">R$ 15.42M</span>
+              <span class="kpi-trend trend-up">▲ 8.4%</span>
+            </div>
+            <div class="kpi-benchmark">Target: R$ 15.00M (Achieved)</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Delivered Orders</div>
+            <div class="kpi-value">96,478</div>
+            <div class="kpi-benchmark">Success Rate: 97.0%</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Average AOV</div>
+            <div class="kpi-value">R$ 159.83</div>
+            <div class="kpi-benchmark">Median spent: R$ 105.28</div>
+          </div>
+          <div class="kpi-card accent-amber">
+            <div class="kpi-title">Repeat Purchase %</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">3.00%</span>
+              <span class="kpi-trend trend-down">▼ 0.5%</span>
+            </div>
+            <div class="kpi-benchmark">Target: 10.0% (Below Target)</div>
+          </div>
+          <div class="kpi-card accent-plum">
+            <div class="kpi-title">Late SLA Rate</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">8.11%</span>
+              <span class="kpi-trend trend-down">▲ 1.2%</span>
+            </div>
+            <div class="kpi-benchmark">Target: &lt; 5.0% (Risk Zone)</div>
+          </div>
+          <div class="kpi-card accent-green">
+            <div class="kpi-title">Review Score</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">4.09</span>
+              <span class="kpi-trend trend-down">▼ 0.1</span>
+            </div>
+            <div class="kpi-benchmark">Target: 4.30 (Below Benchmark)</div>
+          </div>
+        </div>
+
+        <!-- McKinsey Executive Presentation Flow Panel -->
+        <div class="mckinsey-flow-panel">
+          <div class="mck-step">
+            <div class="mck-step-label">1. Business KPI</div>
+            <div class="mck-step-title">R$ 15.42M Revenue</div>
+            <div class="mck-step-desc">GMV expands steadily but operates as a leaky bucket.</div>
+          </div>
+          <div class="mck-step">
+            <div class="mck-step-label">2. Problem</div>
+            <div class="mck-step-title">3.00% Repeat Rate</div>
+            <div class="mck-step-desc">97.00% of shoppers drop off after their initial purchase.</div>
+          </div>
+          <div class="mck-step">
+            <div class="mck-step-label">3. Evidence</div>
+            <div class="mck-step-title">73.92% Credit Card</div>
+            <div class="mck-step-desc">High dependency on card financing. SP drives 38.26% of GMV.</div>
+          </div>
+          <div class="mck-step">
+            <div class="mck-step-label">4. Root Cause</div>
+            <div class="mck-step-title">Logistics SLA Delay</div>
+            <div class="mck-step-desc">Late delivery rate (8.11%) is associated with detractor scores.</div>
+          </div>
+          <div class="mck-step">
+            <div class="mck-step-label">5. Action</div>
+            <div class="mck-step-title">Fulfillment & CRM</div>
+            <div class="mck-step-desc">Launch SP warehouses and trigger CRM cross-sells in 30 days.</div>
+          </div>
+        </div>
+
+        <div class="visual-grid-container">
+          <div class="visual-card">
+            <div class="visual-title">Monthly Revenue Growth | Peak Sales Concentrated in Q4</div>
+            <div class="chart-wrapper">
+              <div class="chart-annotation-badge" style="top: 15%; left: 52%;">
+                ▲ Nov 2017: Black Friday Peak (R$ 1.19M, +34% vs avg)
+              </div>
+              <canvas id="chart-monthly-gmv"></canvas>
+            </div>
+          </div>
+          <div class="visual-card">
+            <div class="visual-title">Payment Type Mix | Credit Cards Represent 73.92% of GMV Share</div>
+            <div class="chart-wrapper">
+              <canvas id="chart-payment-mix"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="ai-insights-strip">
+          <span>🤖 <strong>Executive Insights:</strong> Total revenue reached R$ 15.42M. **São Paulo (SP) represents the highest revenue state contributing R$ 5.90M (38.26% of GMV)**. Delivery delays appear to contribute significantly to customer dissatisfaction (late orders average 2.24 vs. 4.25 on-time).</span>
+        </div>
+      </div>
+
+      <!-- PAGE 2: RETENTION & CUSTOMER VALUE (Theme: Purple) -->
+      <div id="page-2" class="dashboard-page">
+        <!-- 5 KPIs Row -->
+        <div class="kpi-row-5">
+          <div class="kpi-card hero">
+            <div class="kpi-title">Unique Customers</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">96,096</span>
+            </div>
+            <div class="kpi-benchmark">Cleaned database base count</div>
+          </div>
+          <div class="kpi-card accent-plum">
+            <div class="kpi-title">180d Churn Rate</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">70.81%</span>
+            </div>
+            <div class="kpi-benchmark">Total at-risk: 38,706 buyers</div>
+          </div>
+          <div class="kpi-card accent-green">
+            <div class="kpi-title">Month 1 Retention</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">4.74%</span>
+            </div>
+            <div class="kpi-benchmark">Cohort cohort average</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Average CLV</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">R$ 165.17</span>
+            </div>
+            <div class="kpi-benchmark">Target: R$ 200.00 (Below)</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Median spent</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">R$ 107.78</span>
+            </div>
+            <div class="kpi-benchmark">Standard customer base</div>
+          </div>
+        </div>
+
+        <div class="visual-grid-wide">
+          <div class="visual-card">
+            <div class="visual-title">Cohort Retention Matrix | Month 1 Retention Drops below 1% for most cohorts</div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Cohort Month</th>
+                    <th>Cohort Size</th>
+                    <th>Month 0</th>
+                    <th>Month 1</th>
+                    <th>Month 2</th>
+                    <th>Month 3</th>
+                    <th>Month 4</th>
+                    <th>Month 5</th>
+                    <th>Month 6</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>2017-01</strong></td>
+                    <td>750</td>
+                    <td style="background-color: rgba(162,59,114,0.4)">100%</td>
+                    <td style="background-color: rgba(241,143,1,0.25)">0.39%</td>
+                    <td style="background-color: rgba(241,143,1,0.2)">0.26%</td>
+                    <td style="background-color: rgba(241,143,1,0.1)">0.13%</td>
+                    <td style="background-color: rgba(241,143,1,0.25)">0.39%</td>
+                    <td style="background-color: rgba(241,143,1,0.1)">0.13%</td>
+                    <td style="background-color: rgba(241,143,1,0.25)">0.39%</td>
+                  </tr>
+                  <tr>
+                    <td><strong>2017-02</strong></td>
+                    <td>1,650</td>
+                    <td style="background-color: rgba(162,59,114,0.4)">100%</td>
+                    <td style="background-color: rgba(241,143,1,0.15)">0.23%</td>
+                    <td style="background-color: rgba(241,143,1,0.2)">0.29%</td>
+                    <td style="background-color: rgba(241,143,1,0.1)">0.17%</td>
+                    <td style="background-color: rgba(241,143,1,0.1)">0.17%</td>
+                    <td style="background-color: rgba(241,143,1,0.15)">0.23%</td>
+                    <td style="background-color: rgba(241,143,1,0.1)">0.11%</td>
+                  </tr>
+                  <tr>
+                    <td><strong>2017-03</strong></td>
+                    <td>2,540</td>
+                    <td style="background-color: rgba(162,59,114,0.4)">100%</td>
+                    <td style="background-color: rgba(241,143,1,0.3)">0.50%</td>
+                    <td style="background-color: rgba(241,143,1,0.2)">0.34%</td>
+                    <td style="background-color: rgba(241,143,1,0.25)">0.38%</td>
+                    <td style="background-color: rgba(241,143,1,0.1)">0.15%</td>
+                    <td style="background-color: rgba(241,143,1,0.1)">0.15%</td>
+                    <td style="background-color: rgba(241,143,1,0.2)">0.30%</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="drill-hint">Right-click a cohort cell to drill-through to Cohort details.</div>
+            </div>
+          </div>
+          <div class="visual-card">
+            <div class="visual-title">Customer Segmentation Profile (K-Means)</div>
+            <div class="chart-wrapper">
+              <canvas id="chart-customer-segments"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="visual-grid-wide">
+          <div class="visual-card">
+            <div class="visual-title">RFM Segment Distribution & Value (Data Bars)</div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>RFM Segment</th>
+                    <th>Customers</th>
+                    <th>Share %</th>
+                    <th>Revenue (BRL)</th>
+                    <th>Revenue Share %</th>
+                    <th>Order Freq</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="badge badge-champions">Champions</span></td>
+                    <td>11,172</td>
+                    <td>12.0%</td>
+                    <td>R$ 3.86M</td>
+                    <td>
+                      <div class="progress-bar-cell">
+                        <span>25.0%</span>
+                        <div class="progress-track"><div class="progress-fill green" style="width: 25%;"></div></div>
+                      </div>
+                    </td>
+                    <td>2.2</td>
+                  </tr>
+                  <tr>
+                    <td><span class="badge badge-loyal">Loyal Customers</span></td>
+                    <td>23,275</td>
+                    <td>25.0%</td>
+                    <td>R$ 4.63M</td>
+                    <td>
+                      <div class="progress-bar-cell">
+                        <span>30.0%</span>
+                        <div class="progress-track"><div class="progress-fill" style="width: 30%;"></div></div>
+                      </div>
+                    </td>
+                    <td>1.5</td>
+                  </tr>
+                  <tr>
+                    <td><span class="badge badge-atrisk">At Risk</span></td>
+                    <td>18,620</td>
+                    <td>20.0%</td>
+                    <td>R$ 3.08M</td>
+                    <td>
+                      <div class="progress-bar-cell">
+                        <span>20.0%</span>
+                        <div class="progress-track"><div class="progress-fill plum" style="width: 20%;"></div></div>
+                      </div>
+                    </td>
+                    <td>1.1</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="visual-card">
+            <div class="visual-title">Customer Churn Lifecycle Stage (RFM Recency)</div>
+            <div class="chart-wrapper">
+              <canvas id="chart-churn-funnel"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 3: MARKETPLACE PERFORMANCE (Theme: Orange) -->
+      <div id="page-3" class="dashboard-page">
+        <!-- 5 KPIs Row -->
+        <div class="kpi-row-5">
+          <div class="kpi-card hero">
+            <div class="kpi-title">Active Sellers</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">3,095</span>
+            </div>
+            <div class="kpi-benchmark">Total supply network</div>
+          </div>
+          <div class="kpi-card accent-plum">
+            <div class="kpi-title">Top 1% Seller GMV %</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">25.08%</span>
+            </div>
+            <div class="kpi-benchmark">Captured by 29 sellers (High risk)</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Unique Products</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">32,951</span>
+            </div>
+            <div class="kpi-benchmark">Categories count: 71</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Multi-Item Orders</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">12.4%</span>
+            </div>
+            <div class="kpi-benchmark">Avg price multiplier: 2.1x</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Avg Shipping Freight</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">R$ 22.80</span>
+            </div>
+            <div class="kpi-benchmark">Standard freight cost</div>
+          </div>
+        </div>
+
+        <div class="visual-grid-container">
+          <div class="visual-card">
+            <div class="visual-title">Product Mix Dominance | Health & Beauty Leads Category Contribution</div>
+            <div class="chart-wrapper">
+              <div class="chart-annotation-badge" style="top: 15%; left: 45%;">
+                Health & Beauty is highest revenue category: 22.1% GMV contribution (R$ 1.41M)
+              </div>
+              <canvas id="chart-product-categories"></canvas>
+            </div>
+          </div>
+          <div class="visual-card">
+            <div class="visual-title">Top 10 Sellers Leaderboard (Revenue Concentration)</div>
+            <div class="chart-wrapper">
+              <div class="chart-annotation-badge" style="top: 15%; left: 45%;">
+                Top Seller (seller_1d85...): 9.1% top GMV (R$ 280k)
+              </div>
+              <canvas id="chart-seller-revenue"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="visual-grid-container">
+          <div class="visual-card">
+            <div class="visual-title">Market Basket Association (Category Pairs)</div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Category A</th>
+                    <th>Category B</th>
+                    <th>Co-Occurrences</th>
+                    <th>Cross-Sell Promotion Strategy</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>bed_bath_table</td>
+                    <td>furniture_decor</td>
+                    <td><strong>70 Orders</strong></td>
+                    <td style="color: var(--green); font-weight: 600;">Standard post-purchase bundle</td>
+                  </tr>
+                  <tr>
+                    <td>bed_bath_table</td>
+                    <td>home_confort</td>
+                    <td><strong>43 Orders</strong></td>
+                    <td style="color: var(--green); font-weight: 600;">Display bundle during check-out</td>
+                  </tr>
+                  <tr>
+                    <td>furniture_decor</td>
+                    <td>housewares</td>
+                    <td><strong>24 Orders</strong></td>
+                    <td>Consolidated bundle discounts</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="visual-card">
+            <div class="visual-title">Freight Cost to Price Ratio by Category (Data Bars)</div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Category Name</th>
+                    <th>Items Sold</th>
+                    <th>Avg Price</th>
+                    <th>Avg Freight</th>
+                    <th>Freight-to-Price Ratio %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>home_appliances_2</td>
+                    <td>238</td>
+                    <td>R$ 473.01</td>
+                    <td>R$ 108.20</td>
+                    <td>
+                      <div class="progress-bar-cell">
+                        <span>22.87%</span>
+                        <div class="progress-track"><div class="progress-fill plum" style="width: 22.87%;"></div></div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>furniture_decor</td>
+                    <td>8,334</td>
+                    <td>R$ 87.50</td>
+                    <td>R$ 18.20</td>
+                    <td>
+                      <div class="progress-bar-cell">
+                        <span>20.80%</span>
+                        <div class="progress-track"><div class="progress-fill plum" style="width: 20.8%;"></div></div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 4: LOGISTICS & PREDICTIVE ML DIAGNOSTICS (Theme: Red) -->
+      <div id="page-4" class="dashboard-page">
+        <!-- 4 KPIs Row -->
+        <div class="kpi-row-4">
+          <div class="kpi-card accent-green">
+            <div class="kpi-title">On-Time SLA Rate</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">91.89%</span>
+            </div>
+            <div class="kpi-benchmark">On-time average review score: 4.25</div>
+          </div>
+          <div class="kpi-card accent-plum">
+            <div class="kpi-title">Late SLA Rate</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">8.11%</span>
+            </div>
+            <div class="kpi-benchmark">Late average review score: 2.24</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Avg Delivery Time</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">12.5 Days</span>
+            </div>
+            <div class="kpi-benchmark">Total transit duration</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">SLA Detractor Rate</div>
+            <div class="kpi-value-container">
+              <span class="kpi-value">59.80%</span>
+            </div>
+            <div class="kpi-benchmark">Late orders leaving 1-2 stars</div>
+          </div>
+        </div>
+
+        <div class="visual-row-wide">
+          <div class="visual-card">
+            <div class="visual-title">SLA Impact | Late Deliveries Drive Detractors (59.8% 1-2 Star Reviews)</div>
+            <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 12px; height: 100%;">
+              <div class="chart-wrapper"><canvas id="chart-reviews-delivery"></canvas></div>
+              <div style="padding-top: 10px;">
+                <span style="font-size: 9px; font-weight: 700; color: var(--slate-light); text-transform: uppercase;">Key Influencers for Detractor (1-2 Stars)</span>
+                <div class="influencer-flow">
+                  <div class="influencer-node">
+                    <span>is_late_delivery is 1</span>
+                    <span><strong>5.8x</strong></span>
+                    <div class="influencer-bar-container"><div class="influencer-bar-fill" style="width: 100%; height: 100%;"></div></div>
+                  </div>
+                  <div class="influencer-node">
+                    <span>freight is &gt; R$ 45</span>
+                    <span><strong>2.1x</strong></span>
+                    <div class="influencer-bar-container"><div class="influencer-bar-fill" style="width: 36%; height: 100%;"></div></div>
+                  </div>
+                  <div class="influencer-node">
+                    <span>state is RJ</span>
+                    <span><strong>1.8x</strong></span>
+                    <div class="influencer-bar-container"><div class="influencer-bar-fill" style="width: 31%; height: 100%;"></div></div>
+                  </div>
+                </div>
+                <div style="font-size: 8.5px; color: var(--slate-light); margin-top: 10px; line-height: 1.3;">
+                  📌 **Logistics Risk Insights:**<br>
+                  * **Rio de Janeiro (RJ)** represents the highest late delivery rate state at **11.4%** (avg score: 3.86).<br>
+                  * **São Paulo (SP)** is the highest performing state at **5.2%** late rate (avg score: 4.22).
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ML Diagnostics side -->
+          <div class="visual-card">
+            <div class="visual-title">Phase 5 Predictive Machine Learning Models</div>
+            <div class="ml-flex-container">
+              
+              <div class="ml-card-compact">
+                <div class="ml-col">
+                  <strong>Business Problem</strong>
+                  <h5>Predict Repeat Purchase</h5>
+                </div>
+                <div class="ml-col">
+                  <strong>Model Used</strong>
+                  <span>Random Forest (Classifier)</span>
+                </div>
+                <div class="ml-col">
+                  <strong>Performance</strong>
+                  <span>AUC = 0.64</span>
+                </div>
+                <div class="ml-col">
+                  <strong>Business Action</strong>
+                  <span>Launch coupon campaigns within 30 days of delivery.</span>
+                </div>
+              </div>
+
+              <div class="ml-card-compact">
+                <div class="ml-col">
+                  <strong>Business Problem</strong>
+                  <h5>Predict Customer value</h5>
+                </div>
+                <div class="ml-col">
+                  <strong>Model Used</strong>
+                  <span>Random Forest (Regressor)</span>
+                </div>
+                <div class="ml-col">
+                  <strong>Performance</strong>
+                  <span>MAE = R$ 78.43</span>
+                </div>
+                <div class="ml-col">
+                  <strong>Business Action</strong>
+                  <span>Identify high-value buyers at checkout for VIP enrollment.</span>
+                </div>
+              </div>
+
+              <div class="ml-card-compact" style="margin-bottom: 0;">
+                <div class="ml-col">
+                  <strong>Business Problem</strong>
+                  <h5>Predict Delivery Delays</h5>
+                </div>
+                <div class="ml-col">
+                  <strong>Model Used</strong>
+                  <span>Random Forest (Classifier)</span>
+                </div>
+                <div class="ml-col">
+                  <strong>Performance</strong>
+                  <span>AUC = 0.636</span>
+                </div>
+                <div class="ml-col">
+                  <strong>Business Action</strong>
+                  <span>Proactively alert customers and dispatch vouchers before SLA breach.</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // Navigation Page Switching with Dynamic Color Theme (Problem 4)
+    const pages = [
+      { name: "Executive Overview", accent: "#55A868" },          // Green
+      { name: "Retention & Customer Value", accent: "#A23B72" },   // Purple/Plum
+      { name: "Marketplace Performance", accent: "#F18F01" },      // Orange/Amber
+      { name: "Logistics & ML Diagnostics", accent: "#DC2626" }     // Red
+    ];
+
+    function switchPage(pageId) {
+      const selected = pages[pageId - 1];
+      
+      // Update primary visual theme variable (Problem 4)
+      document.documentElement.style.setProperty('--accent', selected.accent);
+
+      const navItems = document.querySelectorAll('.nav-item');
+      navItems.forEach((item, index) => {
+        if (index === pageId - 1) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+
+      const dashboardPages = document.querySelectorAll('.dashboard-page');
+      dashboardPages.forEach((page, index) => {
+        if (index === pageId - 1) {
+          page.classList.add('active');
+        } else {
+          page.classList.remove('active');
+        }
+      });
+
+      document.getElementById('page-title').innerText = selected.name;
+    }
+
+    // Chart Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. Monthly GMV Trend
+      new Chart(document.getElementById('chart-monthly-gmv'), {
+        type: 'line',
+        data: {
+          labels: ['Jan 17', 'Mar 17', 'May 17', 'Jul 17', 'Sep 17', 'Nov 17', 'Jan 18', 'Mar 18', 'May 18', 'Jul 18', 'Aug 18'],
+          datasets: [{
+            label: 'GMV (R$ Millions)',
+            data: [0.13, 0.37, 0.51, 0.59, 0.72, 1.19, 1.11, 1.15, 1.15, 1.03, 1.00],
+            borderColor: '#2E86AB',
+            backgroundColor: 'rgba(46, 134, 171, 0.05)',
+            borderWidth: 2,
+            tension: 0.2,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { grid: { color: '#F1F5F9' } }, x: { grid: { display: false } } }
+        }
+      });
+
+      // 2. Payment Mix
+      new Chart(document.getElementById('chart-payment-mix'), {
+        type: 'bar',
+        data: {
+          labels: ['Credit Card', 'Boleto', 'Voucher', 'Debit Card'],
+          datasets: [{
+            data: [73.92, 19.04, 5.56, 1.47],
+            backgroundColor: ['#2E86AB', '#F18F01', '#A23B72', '#55A868']
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { max: 100, title: { display: true, text: 'Percentage %' } } }
+        }
+      });
+
+      // 3. Customer Segments
+      new Chart(document.getElementById('chart-customer-segments'), {
+        type: 'bar',
+        data: {
+          labels: ['Standard', 'Dormant', 'High-Value Repeat'],
+          datasets: [{
+            data: [54203, 36362, 2793],
+            backgroundColor: ['#2E86AB', '#A23B72', '#55A868']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { grid: { color: '#F1F5F9' } }, x: { grid: { display: false } } }
+        }
+      });
+
+      // 4. Churn Funnel (Bar)
+      new Chart(document.getElementById('chart-churn-funnel'), {
+        type: 'bar',
+        data: {
+          labels: ['Active', 'Warm', 'At Risk', 'Dormant'],
+          datasets: [{
+            data: [15, 14, 30, 41],
+            backgroundColor: ['#55A868', '#F18F01', '#E4572E', '#A23B72']
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { max: 100 } }
+        }
+      });
+
+      // 5. Product Categories
+      new Chart(document.getElementById('chart-product-categories'), {
+        type: 'bar',
+        data: {
+          labels: ['Health/Beauty', 'Watches', 'Bed/Bath', 'Sports', 'Computers'],
+          datasets: [{
+            data: [1.41, 1.26, 1.23, 1.12, 1.03],
+            backgroundColor: '#55A868'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { grid: { color: '#F1F5F9' } }, x: { grid: { display: false } } }
+        }
+      });
+
+      // 6. Top Sellers (Realistic seller hashes)
+      new Chart(document.getElementById('chart-seller-revenue'), {
+        type: 'bar',
+        data: {
+          labels: ['seller_4843...', 'seller_38cd...', 'seller_25ca...', 'seller_1d85...', 'seller_00cc...'],
+          datasets: [{
+            data: [280, 210, 180, 150, 140],
+            backgroundColor: '#2E86AB'
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { grid: { color: '#F1F5F9' } }, y: { grid: { display: false } } }
+        }
+      });
+
+      // 7. Reviews by delivery status
+      new Chart(document.getElementById('chart-reviews-delivery'), {
+        type: 'bar',
+        data: {
+          labels: ['On Time', 'Late'],
+          datasets: [
+            { label: '5★', data: [60, 15], backgroundColor: '#55A868' },
+            { label: '4★', data: [22, 10], backgroundColor: '#8B5FBF' },
+            { label: '3★', data: [8, 15], backgroundColor: '#F3A712' },
+            { label: '1-2★', data: [10, 60], backgroundColor: '#A23B72' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { x: { stacked: true }, y: { stacked: true, grid: { color: '#F1F5F9' }, max: 100 } }
+        }
+      });
+
+    });
+  </script>
+</body>
+</html>

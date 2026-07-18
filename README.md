@@ -1,109 +1,101 @@
-# Olist Customer Lifecycle Analytics
+# Olist Customer Lifecycle Analytics Platform
 
-A focused portfolio project analyzing customer retention, delivery performance, product mix, seller performance, and geography for the Olist Brazilian e-commerce marketplace.
+An end-to-end e-commerce customer lifecycle and data warehousing platform analyzing customer retention, logistics performance, seller metrics, and lifetime value tiers for the Brazilian marketplace Olist.
 
-## Why This Project?
+This project transitions standard transactional e-commerce data into a production-ready analytical platform featuring an automated ETL architecture, a dimensional data warehouse (Star Schema), predictive customer modeling (CLV & Churn), and an interactive executive dashboard.
 
-Many e-commerce companies invest heavily in acquisition while overlooking retention. This project investigates whether customer behavior, logistics performance, and marketplace operations reveal opportunities to improve long-term growth.
+---
 
-## Executive Summary
+## Project Scale & Architecture
 
-The business has historical e-commerce transaction data but lacks a structured understanding of customer retention, purchasing behavior, and long-term customer value. This project analyzes the complete customer lifecycle to identify opportunities for improving customer retention, CLV, and overall business performance.
+```mermaid
+graph TD
+    A[Olist raw transaction tables] --> B(Python Cleaning & Normalization)
+    B --> C[BigQuery / MySQL Warehouse Layers]
+    C --> D[dbt Transformation / Star Schema Models]
+    D --> E[FactSales, DimCustomer, DimProduct, DimSeller, DimDate]
+    E --> F[ML Modeling: CLV, Churn & Late Delivery]
+    E --> G[Interactive Executive Dashboard: dashboard.html]
+    F --> G
+```
 
-## Business Problem
+1. **Extraction & Warehousing**: Normalizes raw relational feeds into a clean staging schema.
+2. **dbt Transformation (Star Schema)**: Implements modular SQL scripts (under `sql/`) to compile dimensional models ([DimCustomer](sql/05_star_schema_definition.sql#L12), [DimProduct](sql/05_star_schema_definition.sql#L21), [DimSeller](sql/05_star_schema_definition.sql#L31), [DimDate](sql/05_star_schema_definition.sql#L40)) and transaction facts ([FactSales](sql/05_star_schema_definition.sql#L51)).
+3. **Advanced Analytics (Python & ML)**: Builds predictive models for repeat-purchase propensity (churn risk), delivery delay, and customer lifetime value (CLV) regression.
+4. **Campaign Simulation**: Simulates the ROI of a targeted retention marketing campaign based on predicted customer churn risk.
+5. **Interactive Dashboard**: Creates a premium, responsive executive dashboard ([dashboard.html](dashboard.html)) mirroring the layout and visual insights of the Power BI reporting layer.
 
-Although the marketplace served 96,096 unique customers, only 3.0% placed another order. This project investigates the operational and behavioral drivers behind that low retention rate to unlock revenue potential.
-
-## Core Insights
-
-| Business Question | Finding | Evidence | Recommendation |
-| :--- | :--- | :--- | :--- |
-| Why is retention low? | Only 3.0% repeat customers | 2,900 repeat buyers | Loyalty campaigns |
-| How do delays impact satisfaction? | Late deliveries hurt scores | 8.11% late rate | Optimize SLA management |
-| Which regions drive revenue? | Top 5 states drive 73.2% revenue | SP alone drives 38.3% GMV | Targeted geographic expansion |
-| What is the customer value? | Median CLV is R$ 107.78 | CLV distribution | High-value segment focus |
+---
 
 ## Repository Structure
 
-```text
-python/       - Cleaning, EDA, and advanced analytics
-sql/          - Business-focused SQL analysis
-notebooks/    - Explorations and validations
-processed/    - Summary outputs
-models/       - Model metrics
-assets/       - Charts and visual snapshots
-powerbi/      - Dashboard specification
+```
+├── sql/
+│   ├── 01_schema_and_cleaning.sql      # Schema definitions and database initialization
+│   ├── 02_feature_engineering.sql       # SQL queries for LTV and RFM metric generation
+│   ├── 03_business_questions.sql       # Baseline customer lifecycle and analytical queries
+│   ├── 04_views_and_optimization.sql   # Query performance optimization and views
+│   └── 05_star_schema_definition.sql   # Data Warehouse Star Schema Fact and Dimension models
+├── python/
+│   ├── clean_data.py                   # Data ingestion and normalization
+│   ├── eda_analysis.py                 # Initial data audit and profiling script
+│   ├── phase5_advanced_analytics.py    # Churn, CLV, and Delivery ML model training
+│   └── retention_simulation.py         # Retention campaign A/B test simulation and ROI calculator
+├── notebooks/                          # Development explorations and scratch sheets
+├── models/                             # Output model metrics and feature importance logs
+├── dashboard.html                      # Interactive 5-page Executive & ML Dashboard
+├── ml_modeling_interpretation.md       # Machine Learning model business interpretations
+├── data_pipeline_architecture.md       # Orchestration specs (Airflow + dbt)
+└── README.md                           # Project platform documentation
 ```
 
-## Tech Stack
+---
 
-- **Languages:** Python, SQL
-- **Libraries:** Pandas, NumPy, Matplotlib, Seaborn
-- **Tools:** Power BI, MySQL
+## Core Analytics Modules & Insights
 
-## Methodology
-```text
-Business Understanding
-        ↓
-Data Cleaning
-        ↓
-Exploratory Data Analysis
-        ↓
-Feature Engineering
-        ↓
-SQL Business Analytics
-        ↓
-Machine Learning
-        ↓
-Power BI Dashboard
-        ↓
-Business Recommendations
+### 1. Retention & Cohort Performance
+* **The Finding**: Only 3.0% of Olist's 93,358 unique customers placed a repeat purchase (2,793 repeat buyers). 
+* **The Evidence**: Cohort retention analysis shows Month 1 retention averages 4.74%, dropping to 0.18% by Month 3.
+* **The Action**: Shift from generalized customer acquisition campaigns to automated loyalty workflows.
+
+### 2. Logistics & Delivery Performance
+* **The Finding**: Late deliveries act as a primary driver of customer churn. 
+* **The Evidence**: Olist’s baseline late delivery rate is 8.11%. Machine learning feature importance audits confirm that shipping delay (`first_delivery_days`) and freight cost (`first_avg_freight`) represent a combined 25.5% of churn predictability.
+* **The Action**: Optimize seller dispatch SLAs and establish regional hubs in high-friction states to reduce transit days.
+
+### 3. Geographical Value Distribution
+* **The Finding**: Purchase volume and revenues are highly concentrated.
+* **The Evidence**: The state of São Paulo (SP) alone drives 38.3% of total revenue. The top 5 states account for 73.2% of overall GMV.
+* **The Action**: Allocate marketing acquisition spends primarily to high-volume states to maximize CAC efficiency.
+
+### 4. Predictive Customer Lifetime Value (CLV)
+* **The Finding**: First-order ticket size determines customer lifetime value.
+* **The Evidence**: The RandomForestRegressor CLV model (R² = 0.92, MAE = R$ 9.70) reveals that `first_order_value` holds a 98.18% importance weight in predicting long-term spend.
+* **The Action**: Prioritize marketing budgets toward acquiring customers on high-value categories (e.g., electronics, furniture) rather than low-value accessories.
+
+---
+
+## How to View & Run the Project
+
+### 1. The Interactive Dashboard
+* **How to run**: Simply double-click [dashboard.html](dashboard.html) to open in any web browser. 
+* *Note: The Power BI `.pbix` file is being updated with the new star schema tables and will be added to the repo. In the meantime, the HTML dashboard replicates the exact layouts, metrics, and ML findings.*
+* **Interactions**: Click through tabs to explore the **Executive Overview**, **RFM Segmentation**, **Cohort Retention Grid**, **Predictive ML Models**, and the **Data Pipeline Architecture**.
+
+### 2. Running ML Models and Campaign Simulation
+Install python dependencies:
+```bash
+pip install pandas numpy scikit-learn
 ```
-## Project Architecture
-```text
-Raw CSV Files
-      │
-      ▼
-Python Data Cleaning
-      │
-      ▼
-Feature Engineering
-      │
-      ├────────► SQL Business Analysis
-      │
-      ▼
-Machine Learning
-      │
-      ▼
-Power BI Dashboard
-      │
-      ▼
-Executive Recommendations
+Train the predictive models:
+```bash
+python python/phase5_advanced_analytics.py
 ```
-## Dashboard Snapshots
-*(Insert dashboard images in `assets/dashboard/`)*
+Execute the retention campaign A/B simulation:
+```bash
+python python/retention_simulation.py
+```
 
-## Business Impact
-
-This analysis identified customer retention not acquisition as the primary growth opportunity. The findings support:
-- Retention campaign design
-- Logistics optimization
-- High-value customer targeting
-- Regional expansion planning
-- Executive KPI monitoring
-
-## Project Limitations
-
-- Dataset covers historical transactions only.
-- Customer churn is inferred from purchase inactivity.
-- Marketing campaign data is unavailable.
-- External economic factors are not included.
-- Analysis is limited to observed customer behavior.
-
-## Future Work
-
-- Predict customer churn using ML.
-- Forecast customer lifetime value.
-- Build recommendation engine.
-- Marketing attribution analysis.
-- Time-series demand forecasting.
+### 3. Warehouse Schema Generation
+The SQL scripts in the `sql/` directory can be executed in sequence to set up the data warehouse. To create the dimensional model:
+* Run the SQL statements in [05_star_schema_definition.sql](sql/05_star_schema_definition.sql) to build the Fact and Dimension tables in your warehouse.

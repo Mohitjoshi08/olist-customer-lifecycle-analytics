@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Olist Customer Lifecycle Analytics Dashboard</title>
+  
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --border-color: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --accent-blue: #2563eb;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --sidebar-width: 260px;
+      --header-height: 60px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* Sidebar Navigation */
+    aside {
+      width: var(--sidebar-width);
+      height: 100vh;
+      background-color: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 16px;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+      padding-left: 8px;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      background-color: var(--accent-blue);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #ffffff;
+      font-size: 16px;
+    }
+
+    .brand-title h1 {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+
+    .brand-title span {
+      font-size: 10px;
+      color: var(--text-muted);
+      display: block;
+    }
+
+    nav {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    .nav-btn:hover {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+    }
+
+    .nav-btn.active {
+      background-color: var(--accent-blue);
+      color: #ffffff;
+    }
+
+    .nav-btn svg {
+      margin-right: 10px;
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    /* Main Content Area */
+    main {
+      flex-grow: 1;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      height: var(--header-height);
+      background-color: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      flex-shrink: 0;
+    }
+
+    header h2 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .header-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .content-container {
+      padding: 32px;
+      display: none;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .content-container.active {
+      display: flex;
+    }
+
+    /* Grid Layouts */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .kpi-card {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .kpi-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .kpi-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    .span-2 {
+      grid-column: span 2;
+    }
+
+    .card {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+      margin-bottom: 4px;
+    }
+
+    /* Cohort Heatmap Styles */
+    .table-container {
+      overflow-x: auto;
+      width: 100%;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    th, td {
+      padding: 8px 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    th {
+      background-color: var(--bg-primary);
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    td.cohort-label {
+      background-color: var(--bg-primary);
+      font-weight: 500;
+      text-align: left;
+      padding-left: 12px;
+    }
+
+    td.cohort-size {
+      background-color: var(--bg-primary);
+      color: var(--text-muted);
+    }
+
+    /* Color gradients for retention */
+    .ret-0 { background-color: #eff6ff; color: #1e3a8a; }
+    .ret-low { background-color: #dbeafe; color: #1e40af; }
+    .ret-med { background-color: #bfdbfe; color: #1e40af; font-weight: 500; }
+    .ret-high { background-color: #3b82f6; color: #ffffff; font-weight: 600; }
+
+    /* Pipeline Diagram */
+    .pipeline-flow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .pipeline-node {
+      background-color: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      width: 140px;
+      font-size: 12px;
+    }
+
+    .pipeline-node.active {
+      border-color: var(--accent-blue);
+      background-color: #eff6ff;
+    }
+
+    .pipeline-node h4 {
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--accent-blue);
+    }
+
+    .pipeline-arrow {
+      color: var(--text-muted);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    /* Paragraph styles */
+    .narrative-text {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    .narrative-text strong {
+      color: var(--text-main);
+    }
+
+    ul.bullet-list {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    ul.bullet-list li {
+      position: relative;
+      padding-left: 20px;
+    }
+
+    ul.bullet-list li::before {
+      content: "•";
+      color: var(--accent-blue);
+      font-size: 18px;
+      position: absolute;
+      left: 4px;
+      top: -2px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="brand">
+      <div class="brand-logo">O</div>
+      <div class="brand-title">
+        <h1>Olist Analytics</h1>
+        <span>Customer Lifecycle Platform</span>
+      </div>
+    </div>
+    <nav>
+      <button class="nav-btn active" onclick="switchTab('executive')">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+        Executive Overview
+      </button>
+      <button class="nav-btn" onclick="switchTab('segmentation')">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        RFM Segmentation
+      </button>
+      <button class="nav-btn" onclick="switchTab('cohorts')">
+        <svg viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+        Cohort Retention
+      </button>
+      <button class="nav-btn" onclick="switchTab('predictive')">
+        <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        Predictive Modeling
+      </button>
+      <button class="nav-btn" onclick="switchTab('pipeline')">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.53c-.26-.81-1-1.4-1.9-1.4h-1v-3c0-.55-.45-1-1-1h-6v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.4z"/></svg>
+        ETL & Architecture
+      </button>
+    </nav>
+  </aside>
+
+  <!-- Main Area -->
+  <main>
+    <header>
+      <h2 id="page-title">Executive Overview</h2>
+      <div class="header-meta">Data Scope: 93,358 unique customers (Delivered transactions)</div>
+    </header>
+
+    <!-- Tab 1: Executive KPI Overview -->
+    <div id="executive" class="content-container active">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Unique Customers</div>
+          <div class="kpi-value">93,358</div>
+          <div class="kpi-desc">Consolidated customer file size</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Repeat Rate</div>
+          <div class="kpi-value">2.99%</div>
+          <div class="kpi-desc">2,793 repeat order customers</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Average Customer Value (CLV)</div>
+          <div class="kpi-value">R$ 165.17</div>
+          <div class="kpi-desc">Median value: R$ 107.78</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Late Delivery Rate</div>
+          <div class="kpi-value">8.11%</div>
+          <div class="kpi-desc">Average actual shipping SLA breach</div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="card">
+          <div class="card-title">Geographic Revenue Distribution (Top States)</div>
+          <canvas id="geoChart" height="200"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-title">Market Basket Association Pairs (Product Co-occurrences)</div>
+          <div class="narrative-text">
+            Standard market basket analysis reveals strong cross-category co-occurrences. These top pairs represent opportunities for bundles and product recommendations:
+          </div>
+          <ul class="bullet-list" style="margin-top: 10px;">
+            <li><strong>bed_bath_table</strong> + <strong>furniture_decor</strong>: 70 co-occurrences</li>
+            <li><strong>bed_bath_table</strong> + <strong>home_confort</strong>: 43 co-occurrences</li>
+            <li><strong>furniture_decor</strong> + <strong>housewares</strong>: 24 co-occurrences</li>
+            <li><strong>bed_bath_table</strong> + <strong>housewares</strong>: 20 co-occurrences</li>
+            <li><strong>baby</strong> + <strong>cool_stuff</strong>: 20 co-occurrences</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: RFM Customer Segmentation -->
+    <div id="segmentation" class="content-container">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">High-Value Repeat Segment</div>
+          <div class="kpi-value">2,793</div>
+          <div class="kpi-desc">3.0% of total customers</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Standard Segment</div>
+          <div class="kpi-value">54,203</div>
+          <div class="kpi-desc">58.1% of total customers</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Dormant Segment</div>
+          <div class="kpi-value">36,362</div>
+          <div class="kpi-desc">38.9% of total customers</div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="card">
+          <div class="card-title">KMeans Cluster Distribution</div>
+          <div style="max-height: 250px; display: flex; justify-content: center;">
+            <canvas id="segmentChart" style="max-height: 250px; max-width: 250px;"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Behavioral Profiles by Segment</div>
+          <div class="narrative-text">
+            <strong>KMeans clustering</strong> partitions the customer base into distinct segments based on Recency, Frequency, Monetary Value, Review Scores, and Delivery Speed:
+          </div>
+          <ul class="bullet-list" style="margin-top: 8px;">
+            <li><strong>High-Value Repeat (Average Order Count: 2.11, Spent: R$ 323.01)</strong>: Customers showing active repeat purchasing patterns and highest LTV contribution.</li>
+            <li><strong>Standard (Spent: R$ 157.40)</strong>: Main customer body, primarily one-time buyers with good rating feedback (Average Review: 4.33).</li>
+            <li><strong>Dormant (Avg Recency: 437 days)</strong>: Inactive users who haven't interacted or bought in over a year.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Cohort Retention -->
+    <div id="cohorts" class="content-container">
+      <div class="card">
+        <div class="card-title">Customer Cohort Retention Matrix (Month 0 - Month 5)</div>
+        <div class="narrative-text" style="margin-bottom: 12px;">
+          The table below tracks MoM retention rates across purchasing cohorts. Month 1 average retention stands at **4.74%**, dropping below **0.2%** by Month 3, illustrating severe retention drop-off.
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Cohort Month</th>
+                <th>Size</th>
+                <th>Month 0</th>
+                <th>Month 1</th>
+                <th>Month 2</th>
+                <th>Month 3</th>
+                <th>Month 4</th>
+                <th>Month 5</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="cohort-label">Jan 2017</td>
+                <td class="cohort-size">718</td>
+                <td class="ret-high">100.0%</td>
+                <td class="ret-med">4.51%</td>
+                <td class="ret-low">0.27%</td>
+                <td class="ret-low">0.14%</td>
+                <td class="ret-low">0.41%</td>
+                <td class="ret-low">0.14%</td>
+              </tr>
+              <tr>
+                <td class="cohort-label">Feb 2017</td>
+                <td class="cohort-size">1,617</td>
+                <td class="ret-high">100.0%</td>
+                <td class="ret-med">4.88%</td>
+                <td class="ret-low">0.25%</td>
+                <td class="ret-low">0.31%</td>
+                <td class="ret-low">0.19%</td>
+                <td class="ret-low">0.12%</td>
+              </tr>
+              <tr>
+                <td class="cohort-label">Mar 2017</td>
+                <td class="cohort-size">2,503</td>
+                <td class="ret-high">100.0%</td>
+                <td class="ret-med">5.20%</td>
+                <td class="ret-low">0.36%</td>
+                <td class="ret-low">0.36%</td>
+                <td class="ret-low">0.20%</td>
+                <td class="ret-low">0.12%</td>
+              </tr>
+              <tr>
+                <td class="cohort-label">Apr 2017</td>
+                <td class="cohort-size">2,274</td>
+                <td class="ret-high">100.0%</td>
+                <td class="ret-med">4.40%</td>
+                <td class="ret-low">0.22%</td>
+                <td class="ret-low">0.18%</td>
+                <td class="ret-low">0.26%</td>
+                <td class="ret-low">0.22%</td>
+              </tr>
+              <tr>
+                <td class="cohort-label">May 2017</td>
+                <td class="cohort-size">3,478</td>
+                <td class="ret-high">100.0%</td>
+                <td class="ret-med">4.83%</td>
+                <td class="ret-low">0.46%</td>
+                <td class="ret-low">0.29%</td>
+                <td class="ret-low">0.29%</td>
+                <td class="ret-low">0.32%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: Predictive Modeling -->
+    <div id="predictive" class="content-container">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">CLV Predictor (R2 Score)</div>
+          <div class="kpi-value">0.9209</div>
+          <div class="kpi-desc">Mean Absolute Error (MAE): R$ 9.70</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Repeat Purchase AUC-ROC</div>
+          <div class="kpi-value">0.6025</div>
+          <div class="kpi-desc">Propensity classification baseline</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Late Delivery AUC-ROC</div>
+          <div class="kpi-value">0.6357</div>
+          <div class="kpi-desc">Predicts delay risk before breach</div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="card">
+          <div class="card-title">CLV Feature Importance (Random Forest Regressor)</div>
+          <canvas id="predictChart" height="200"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-title">Model Interpretation & Business Value</div>
+          <div class="narrative-text">
+            Rather than relying solely on descriptive, historical customer spend, we implemented predictive models to proactively target accounts:
+          </div>
+          <ul class="bullet-list" style="margin-top: 8px;">
+            <li><strong>Customer Lifetime Value (CLV) Prediction</strong>: Standard RandomForestRegressor models the customer value from initial transaction attributes. The strongest predictor is <strong>first_order_value (98.1%)</strong>, validating that acquisition-stage spending is the most significant anchor of lifetime value.</li>
+            <li><strong>Repeat Purchase Propensity / Churn Classifier</strong>: Models the probability of a customer ordering again based on initial experience. The primary drivers are <strong>first_avg_freight (14.0%)</strong> and <strong>first_delivery_days (11.4%)</strong>, proving that high shipping fees and slow logistics are the principal inhibitors of customer retention.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 5: ETL Pipeline & Architecture -->
+    <div id="pipeline" class="content-container">
+      <div class="card">
+        <div class="card-title">Proposed Data Analytics Platform Architecture</div>
+        <div class="narrative-text">
+          To transition this portfolio project into an end-to-end analytics platform, we designed an automated, structured data pipeline using **Apache Airflow** and **dbt (data build tool)**:
+        </div>
+        
+        <div class="pipeline-flow">
+          <div class="pipeline-node active">
+            <h4>Olist OLTP</h4>
+            <p>PostgreSQL transactional database (Raw sources)</p>
+          </div>
+          <div class="pipeline-arrow">➔</div>
+          <div class="pipeline-node">
+            <h4>Airflow Pipeline</h4>
+            <p>Automated daily extraction of transaction files</p>
+          </div>
+          <div class="pipeline-arrow">➔</div>
+          <div class="pipeline-node active">
+            <h4>BigQuery RAW</h4>
+            <p>Cloud landing zone for unstructured raw views</p>
+          </div>
+          <div class="pipeline-arrow">➔</div>
+          <div class="pipeline-node">
+            <h4>dbt Modeling</h4>
+            <p>SQL tests, deduplication & dimension building</p>
+          </div>
+          <div class="pipeline-arrow">➔</div>
+          <div class="pipeline-node active">
+            <h4>Analytics Layer</h4>
+            <p>Optimized Star Schema (FactSales & Dimensions)</p>
+          </div>
+        </div>
+
+        <ul class="bullet-list" style="margin-top: 16px;">
+          <li><strong>Extract (Apache Airflow)</strong>: Daily cron scheduling triggers ingestion tasks to pull order and review streams, loading them as raw partitions into the cloud storage and landing schema.</li>
+          <li><strong>Transform (dbt)</strong>: Modular SQL models map staging tables, execute automated data quality tests, and compile flat dimensional tables to feed the Star Schema models.</li>
+          <li><strong>Load & BI</strong>: Transformed layers are loaded into the analytics schema to enable fast dashboard rendering and python-based machine learning training scripts.</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function switchTab(tabId) {
+      // Hide all tabs
+      document.querySelectorAll('.content-container').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      
+      // Show active tab
+      document.getElementById(tabId).classList.add('active');
+      
+      // Find and activate the nav button
+      const navButtons = document.querySelectorAll('.nav-btn');
+      navButtons.forEach(btn => {
+        if (btn.getAttribute('onclick').includes(tabId)) {
+          btn.classList.add('active');
+          document.getElementById('page-title').innerText = btn.innerText.trim();
+        }
+      });
+    }
+
+    // Initialize charts when page loads
+    window.onload = function() {
+      // 1. Geographic Revenue Chart (Horizontal Bar)
+      new Chart(document.getElementById('geoChart'), {
+        type: 'bar',
+        data: {
+          labels: ['SP (São Paulo)', 'RJ (Rio de Janeiro)', 'MG (Minas Gerais)', 'RS (Rio Grande do Sul)', 'PR (Paraná)'],
+          datasets: [{
+            label: 'Total Revenue (R$)',
+            data: [5203300, 1823100, 1584900, 784300, 684200],
+            backgroundColor: '#2563eb',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: { x: { grid: { display: false } }, y: { grid: { display: false } } }
+        }
+      });
+
+      // 2. Segment Distribution Chart (Doughnut)
+      new Chart(document.getElementById('segmentChart'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Standard', 'Dormant', 'High-Value Repeat'],
+          datasets: [{
+            data: [54203, 36362, 2793],
+            backgroundColor: ['#2563eb', '#64748b', '#10b981'],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
+        }
+      });
+
+      // 3. Feature Importance Chart (Horizontal Bar)
+      new Chart(document.getElementById('predictChart'), {
+        type: 'bar',
+        data: {
+          labels: ['First Order Value', 'First Avg Item Price', 'First Delivery Days', 'First Avg Freight', 'Payment Installments', 'Review Score'],
+          datasets: [{
+            label: 'Importance Share (%)',
+            data: [98.18, 0.38, 0.32, 0.20, 0.11, 0.07],
+            backgroundColor: '#10b981',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: { x: { grid: { display: false } }, y: { grid: { display: false } } }
+        }
+      });
+    };
+  </script>
+</body>
+</html>
