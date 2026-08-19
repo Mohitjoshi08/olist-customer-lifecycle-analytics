@@ -1,5 +1,7 @@
 # Olist Customer Lifecycle Analytics Platform
 
+[![Live Dashboard](https://img.shields.io/badge/Live_Dashboard-View_Here-blue?style=for-the-badge)](https://olist-customer-lifecycle-analytics.netlify.app/)
+
 An end-to-end e-commerce customer lifecycle and data warehousing platform analyzing customer retention, logistics performance, seller metrics, and lifetime value tiers for the Brazilian marketplace Olist.
 
 This project transitions standard transactional e-commerce data into a production-ready analytical platform featuring an automated ETL architecture, a dimensional data warehouse (Star Schema), predictive customer modeling (CLV & Churn), and an interactive executive dashboard.
@@ -77,7 +79,8 @@ graph TD
 ## How to View & Run the Project
 
 ### 1. The Interactive Dashboard
-* **How to run**: Simply double-click [dashboard.html](dashboard.html) to open in any web browser. 
+* **Live View**: The dashboard is officially hosted and can be viewed directly here: [**Live Executive Dashboard**](https://olist-customer-lifecycle-analytics.netlify.app/)
+* **Local run**: Alternatively, simply double-click [dashboard.html](dashboard.html) to open it locally in any web browser. 
 * *Note: The Power BI `.pbix` file is being updated with the new star schema tables and will be added to the repo. In the meantime, the HTML dashboard replicates the exact layouts, metrics, and ML findings.*
 * **Interactions**: Click through tabs to explore the **Executive Overview**, **RFM Segmentation**, **Cohort Retention Grid**, **Predictive ML Models**, and the **Data Pipeline Architecture**.
 
