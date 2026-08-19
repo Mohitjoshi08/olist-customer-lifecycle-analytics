@@ -43,9 +43,8 @@ graph TD
 │   └── retention_simulation.py         # Retention campaign A/B test simulation and ROI calculator
 ├── notebooks/                          # Development explorations and scratch sheets
 ├── models/                             # Output model metrics and feature importance logs
+├── docs/                               # Documentation, architecture specs, and reports
 ├── dashboard.html                      # Interactive 5-page Executive & ML Dashboard
-├── ml_modeling_interpretation.md       # Machine Learning model business interpretations
-├── data_pipeline_architecture.md       # Orchestration specs (Airflow + dbt)
 └── README.md                           # Project platform documentation
 ```
 
