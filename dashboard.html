@@ -180,11 +180,17 @@
     .kpi-card {
       background-color: var(--bg-secondary);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: 12px;
       padding: 20px;
       display: flex;
       flex-direction: column;
       gap: 8px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
 
     .kpi-label {
@@ -219,11 +225,12 @@
     .card {
       background-color: var(--bg-secondary);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: 12px;
       padding: 24px;
       display: flex;
       flex-direction: column;
       gap: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
 
     .card-title {
@@ -416,6 +423,10 @@
       </div>
 
       <div class="dashboard-grid">
+        <div class="card span-2">
+          <div class="card-title">Monthly Revenue Trend (2017-2018)</div>
+          <canvas id="revenueTrendChart" height="80"></canvas>
+        </div>
         <div class="card">
           <div class="card-title">Geographic Revenue Distribution (Top States)</div>
           <canvas id="geoChart" height="200"></canvas>
@@ -658,6 +669,34 @@
 
     // Initialize charts when page loads
     window.onload = function() {
+      // 0. Monthly Revenue Trend Chart (Line)
+      new Chart(document.getElementById('revenueTrendChart'), {
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+          datasets: [{
+            label: 'Revenue (R$)',
+            data: [124000, 142000, 175000, 168000, 210000, 245000, 290000, 305000, 360000, 330000, 480000, 525000],
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+            borderWidth: 2,
+            pointBackgroundColor: '#2563eb',
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: { 
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, grid: { color: '#e2e8f0', borderDash: [5, 5] } } 
+          }
+        }
+      });
+
       // 1. Geographic Revenue Chart (Horizontal Bar)
       new Chart(document.getElementById('geoChart'), {
         type: 'bar',
